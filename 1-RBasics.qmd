@@ -273,14 +273,16 @@ We can ask R to pull up the documentation like this:
 
 (@) Now you try, find the documentation for the function  `signif()`.
 ```{r}
-
+?signif()
+floor(3.7777)
+floor (2.2)
 ```
 
 In real life, you typically you wouldn't want to store this code in your script file. You probably don't need to pull up the documentation for the function every time you run that piece of code. But for the purposes of this worksheet we're adding it to our `.Rmd` document. 
 
 (@) Use the console to find the documentation for `floor()`? Try it and then tell me, what does that function do? 
 
->
+>Floor rounds a number to the nearest digit, no deminal places, that is equal to or less than the number. 
 
 ### Data Frames & Packages
 
