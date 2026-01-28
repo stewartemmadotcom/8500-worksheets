@@ -228,7 +228,7 @@ my.numbers * 2
 ```
 (@) Explain in a few sentences, what happened in the code above?
 
->
+> In the code above, we created a vector called my.numbers that included multiple values. Then, we multiplied that vector by 2, resulting in a list of the values multiplied by 2. 
 
 Lets try something slightly different. 
 ```{r}
@@ -236,11 +236,12 @@ my.numbers[3] * 2
 ```
 (@) Explain in a few sentences, what happened in the code above? 
 
->
+> Here, we specified the third value in the vector and multiplied it by two. Because the third value is 6, the result is 12. 
 
 (@) You try, create a list of five items and store it in a descriptive variable. 
 ```{r}
-
+my.pets <- c("Jack", "Fiona", "Bean")
+my.pets
 ```
 
 
