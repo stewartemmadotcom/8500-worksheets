@@ -1,0 +1,95 @@
+# Week [X] Learning Log
+
+**Student Name:** Emma Stewart  
+**Week of:** Jan 26-Feb 1 
+**Topic(s):** R Basics
+
+---
+
+## What I Worked On This Week
+
+**Assignment(s):**
+- [x] Worksheet 1
+- [ ] Other: [describe]
+
+---
+
+## Challenges & Problem-Solving
+
+### Challenge 1: Figure out the floor function
+
+**What I was trying to do:**
+In the worksheet from this week, one of the prompts was to describe the floor function. 
+
+**What went wrong:**
+Despite reading the documentation for floor, I was still confused. 
+
+**My problem-solving process:**
+1. I attempted to read the documentation for floor, but I still didn't really understand what it did. 
+2. I googled the floor function and read an article on geeksforgeeks.org that simplified the explanation. 
+3. [Additional attempts if relevant]
+
+**Resources I consulted:**
+- [x] Documentation for [package/function]
+- [ ] Stack Overflow: [describe what you searched for]
+- [ ] Course materials: [which ones]
+- [ ] Slack discussion
+- [ ] Office hours
+- [x] Other: [describe] Google 
+
+**Resolution:**
+The website that I found explained the floor function to me in more simple terms, and I was able to understand what it does. 
+
+**What I learned:**
+I learned that sometimes the documentation is written in a way that is confusing, but that I can still easily figure out functions through a quick google search. 
+
+---
+
+### Challenge 2: Figuring out the oldest and youngest ages in a data set 
+
+**What I was trying to do:**
+When tinkering with the BostonWomenVoters data set, I wanted to figure out the age range of voters. Because I had just learned the min/max functions, I figured I could use those on the age column. However, when I executed the code, the value returned was NA. 
+
+**What went wrong:**
+I kept getting the value NA rather than a number. 
+
+**My problem-solving process:**
+1. I returned to the documentation for min/max functions, but I could not figure out why I was still getting NA. 
+2. I googled my issue and found a reddit post that described how to remove NA from R's query. 
+3. [Additional attempts if relevant]
+
+**Resources I consulted:**
+- [x] Documentation for [package/function]
+- [ ] Stack Overflow: [describe what you searched for]
+- [ ] Course materials: [which ones]
+- [ ] Slack discussion
+- [ ] Office hours
+- [X] Other: [describe] Google 
+
+**Resolution:**
+In the code, rather than just putting something like 
+max(BostonWomenVoters$Age) 
+
+I instead put this 
+
+max(BostonWomenVoters$Age, na.rm = TRUE) 
+
+**What I learned:**
+Here, I learned how to remove NA from the query so that r would return an actual value. 
+
+
+---
+
+## Reflection
+
+**What I understand well now:**
+I feel like I have a good grasp of the R basics we learned this week, as well as how to search for solutions to the challenges I run into. I particularly enjoyed querying the data sets. 
+
+**What I'm still confused about:**
+Although I feel like I have a good grasp of the basics, I am curious if there is a way to query the data and at the same time set the answer of the query to a variable. 
+
+**Connection to historical research:**
+Being able to quickly query large datasets seems like it could come in handy during research. 
+For example, when I was able to query the data set to find the age range of women in BostonWomenVoters. 
+If I was using a more geographically diverse data set, I would also likely be able to figure out the percentage of voters from a certain area quickly. 
+
