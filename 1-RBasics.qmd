@@ -364,17 +364,17 @@ That gives us the first 6 rows of data. Its really useful if you just want to pe
 
 (@) The default is to print six rows of data. Can you modify the above code to print out the first 10 rows? 
 ```{r}
-
+head(gayguides, 10)
 ```
 
 (@) Can you find the last 6 rows of data? 
 ```{r}
-
+tail(gayguides)
 ```
 
 (@) Reflect on the previous two prompts. How did you figure these out? 
 
->
+> To figure out how to print the first ten rows of data rather than the first six, I looked at the documentation for the head function. There, I found that I can modify the number of rows provided by putting a number after the dataset. I also found the documentation for tail there, which prints from the last rows. 
 
 The `str()` function is another very useful function for understanding a dataset. It compactly displays the internal structure of an R object. 
 ```{r}
@@ -389,32 +389,38 @@ head(gayguides$title)
 While that's useful, this particular dataset happens to be sorted by title. So the first rows are all labeled some version of B.A. beach. That's not very useful. What if we want to see the 500th item in this list? Well, we can pull that up like this: 
 ```{r}
 gayguides$title[500]
+gayguides$state[501]
 ```
 
 (@) Break this down. Whats going on here? What do each of the elements of this code mean? (gayguides, $, title, and [500]) 
 
->
+>gayguides specifies the data frame we are pulling from. $ tells R to pull a specific piece of data, while title specifies which data to pull. The number 500 specifies which row to pull from. Put together, we are telling R to print the title from the gayguides found on row 500. 
 
 (@) The Year variable contains the year (numeric) of each entry. Can you find the earliest year in this dataset? (Using code, don't cheat and use the documentation!)
 ```{r}
-
+min(gayguides$Year)
 ```
 
 
 (@) How about the latest year? 
 ```{r}
-
+max(gayguides$Year)
 ```
 
 
 (@) Add another dataset from `DigitalMethodsData`. How many observations are included in this dataset? Run through some of the examples from above to learn about the dataset.
 ```{r}
-
+data(BostonWomenVoters)
+str(BostonWomenVoters)
+max(BostonWomenVoters$Age)
+min(BostonWomenVoters$Age, na.rm = TRUE)
+max(BostonWomenVoters$Age, na.rm = TRUE)
+max(BostonWomenVoters$Age[500:510], na.rm = TRUE)
 ```
 
 (@) What did you learn about the dataset? What can you tell me about it? 
 
->
+> I analyzed the BostonWomenVoters dataset. There are 34 variables and 10702 observations. The variables include things like ward number, page number, precinct, name, age, country of birth, occupation, husband name, father name, etc. I was also able to figure out that the oldest woman listed was 91 and the youngest was 20. To find this information, I instructed R to ignore any values that were NA!  
 
 
 
