@@ -320,7 +320,7 @@ What is going on here? Each line within this function (x,y,z) creates a new colu
 
 (@) What is going on in row z? Can you explain the logic here?
 
->
+> Row z uses the equation provided above, x * 2 + y, to determine z's value for each new row; x increases by 1 in each of the five rows, while y is always 1. Therefore, in row 2 (for example), z equals 2 * 2 + 1, or 5. 
 
 
 ## Loading Dataframes from Packages
@@ -342,7 +342,7 @@ Run `help(package="DigitalMethodsData")` in your console to pull up a list of da
 
 For demonstration purposes we'll use the `gayguides` data here. Pull up the help documentation for this dataset. What does the documentation tell you abou the scope of this dataset? 
 
->
+> The documentation says that this dataset has information pulled from Bob Damron's Address Books from the years 1965-1985. The data was last updated Dec 2022. There is one data frame with 14 variables (columns) and 60698 observations (rows). 
 
 To use a dataset included in this package we first need to load it. We can do so like this:
 
