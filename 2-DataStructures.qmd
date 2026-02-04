@@ -221,12 +221,14 @@ What does this code do? It creates a new column in the gayguides data called `my
 In class we learned about the pipe operator `%>%`. The pipe takes the output from the left side and passes it as the first argument to the right side. This makes code more readable.
 ```{r}
 # These are equivalent:
+library(magrittr)
 head(gayguides, 10)
 gayguides %>% head(10)
 ```
 
 (@) Use the pipe to subset the gayguides data to get the title column, then look at the first 20 entries.
 ```{r}
+gayguides$title %>% head(20)
 ```
 
 ## Putting It All Together: Historical Data Challenges
@@ -242,6 +244,14 @@ Hint: Break this into steps:
    - Step 3: Combine these conditions
    - Step 4: Use this combined condition to subset the data
 ```{r}
+ca.locations <- gayguides$state=="CA"
+
+year_1970s <- gayguides$Year>=1970 & gayguides$Year<=1979
+
+gg.ca <- gayguides[ca.locations,]
+gg.1970s <- gayguides[year_1970s,]
+
+
 
 ```
 
@@ -260,6 +270,13 @@ Load the Boston Women Voters dataset and use subsetting to answer these historic
 
 (@) Find all women voters who were over 50 years old. Then find all the voters who were under the age of 50. How many were there? What can you say about the age distribution of women voters?
 ```{r}
+str(BostonWomenVoters)
+over.50 <- BostonWomenVoters$Age>50
+
+under.50 <- BostonWomenVoters$Age<50
+nrow(BostonWomenVoters[over.50,])
+nrow(BostonWomenVoters[under.50,])
+#There were significantly more women voters under the age of 50, at least included in this data set. 
 ```
 
 (@) Can you create a subset that includes only women voters who lived on "Main" street (the street name contains "Main")? How many were there? # Hint: You'll need to search within the street column. This will require a bit of googling and reading documentation. Look for a function that will allow you to search within a column.
