@@ -130,21 +130,34 @@ for (p in 1:length(presidents)) {
 
 (@) Why does this work? What does `length()` do and why do we use it on `presidents`?
 
-> 
+> This works because length specifies the entire number of items in the variable presidents; 1:length means to start from the beginning and go through each item. Instead of i, p was used this time. 
 
 Create a character vector that contains the title of each of your classes this semester. Can you write a `for` loop that prints out "I am enrolled in" and the name of each of your classes? ("I am enrolled in History 8150", "I am enrolled in History 8000".....etc). Hint: you'll need a function to combine the output and some text of your choosing inside the function. 
 
 ```{r}
+spring.classes <- c("Digital Methods I", "Theories of Digital Analaysis", "Local History and Digital Projects") 
+for (c in 1:length(spring.classes)) {
+  print(paste("I am enrolled in", spring.classes[c]))
+}
 
 ```
 
 (@) Now let's practice with data. Create a loop that prints out the first 5 titles from the gayguides dataset. Hint: You'll need to loop from 1 to 5 and access `gayguides$title[i]`
 ```{r}
-
+for (t in 1:5) {
+  print(gayguides$title[t])
+}
 ```
 
 (@) Can you modify the above loop to only print titles that contain the word "Bar"? (Hint: use grepl() to search for "Bar" in the title)
+THIS ONE!!!!!!!!!!!!
 ```{r}
+grepl("Bar", gayguides$title)
+
+for (i in 1:nrow(gayguides)) {
+  if (grepl("Bar", gayguides$title[i]))
+  print(gayguides&title[i])
+}
 ```
 
 Sometimes we want our loop to terminate itself early. There are two statements that help us do that: 
@@ -176,10 +189,19 @@ for (i in 1:10) {
 
 (@) What happened here? Why did the loop only print 3 and 4? 
 
+> Here, we used "next" to skip values less than 3. Then, we used "break" to end the loop if it came across a value greater than or equal to 5. 
 
 (@) What if we wanted to loop through the gay guides data? Can you write a loop that iterates through the cities in the Gay Guides data and returns the title of any location in Greenville? 
 ```{r}
+gvil <- gayguides$city=="Greenville"
+gvilgg <- gayguides[gvil,]
 
+for (i in 1:nrow(gayguides)) {
+  if (gayguides$city[i] != "Greenville")
+    next
+
+  print(gayguides$title[i])
+}
 ```
 
 (@) The Gay Guides data is quite large (60,000+ entries). Write a loop that searches through the data and finds the first 5 locations in New York City. Your loop should:
@@ -189,7 +211,17 @@ for (i in 1:10) {
 
 **Hint:** Create a counter to track how many you've found.
 ```{r}
+counter <- 0
+for (i in 1:nrow(gayguides)) {
+  if (gayguides$state[i] != "NY")
+    next 
 
+  print(gayguides$title[i])
+  counter = counter + 1
+
+  if (counter == 5)
+    break
+}
 ```
 
 `while` is another useful tool for writing loops. While will run a loop _while_ a condition is true. Once that condition is not true, it exits. For example: 
