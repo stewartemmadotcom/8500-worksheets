@@ -156,7 +156,7 @@ grepl("Bar", gayguides$title)
 
 for (i in 1:nrow(gayguides)) {
   if (grepl("Bar", gayguides$title[i]))
-  print(gayguides&title[i])
+  print(gayguides$title[i])
 }
 ```
 
@@ -268,7 +268,7 @@ historyStudents <- function(studentname, class) {
 
 (@) Can you run this function? 
 ```{r}
-
+historyStudents("Bean and Jack", "Dog Training School")
 ```
 
 
@@ -283,22 +283,39 @@ Let's start with a simpler function to build confidence.
 
 (@) Write a function called `double()` that takes a number and returns that number multiplied by 2.
 ```{r}
+double <- function(y) {
+  myvalue <- y * 2
+  print(myvalue)
+}
+double(20)
 ```
 
 (@) Write a function called `greet()` that takes a name and returns "Hello, [name]!" 
 ```{r}
+greet <- function(name) {
+  greeting <- paste("Hello,", name)
+  print(greeting)
+}
+greet("Bean")
+
 ```
 
 Now let's try something more complex:
 
 (@) Write a function that takes a string of text and counts the number of characters. The function should return "There are xx characters in that string." 
 ```{r}
+charcount <- function(string) {
+  thecount <- nchar(string)
+  print(thecount)
+}
+
+charcount("bean and jack")
 
 ```
 
 (@) Reflect on the process of building the above function. How did you go about figuring this out? 
 
->
+> For this, I first needed to figure out what function counts the number of characters in a string. I found the nchar function through a quick google search on the GeeksforGeeks.com website. Then, I used that function to create my own function, just as in the examples above. 
 
 The body of a functions can use any of the techniques we've learned in this worksheet like loops and if statements. For example: 
 ```{r}
@@ -326,7 +343,7 @@ grade(75)
 GeorgeWashington <- grade(60)
 ```
 
->
+> Rather than being printed, it is stored to a variable called GeorgeWashington! 
 
 
 Here's a more complex example: 
@@ -349,11 +366,39 @@ gg.locations("San Diego", 1980)
 (@) Write a function that accepts two arguments: a state and a year. The function should pull all the locations in that state and year from the gayguides dataset and return a statement that says "Found a location in [state] called [location title]". (Where [state] is the state and [location title] is the title of a location in that year and state.)
 
 ```{r}
+state.year <- function(gstate, gyear) {
+  data(gayguides)
 
+  for (i in 1:nrow(gayguides)) {
+    if (gayguides$state[i] == gstate && gayguides$Year[i] == gyear) {
+      print(paste("Found a location in ", gayguides$state[i], "called ", gayguides$title[i], "."))
+    } else {
+      next
+    }
+  }
+}
+state.year("AR", 1980)
 ```
 
 (@) Use the Boston Women Voters dataset (BostonWomenVoters). Write a function that accepts the name of an occupation. Your function should return new dataframe that includes the records for every voter listed with that occupation.  
 ```{r}
+bwv.occupation <- function(Occupation) {
+  data(BostonWomenVoters)
+  
+  # 1. Create empty container OUTSIDE loop
+  result <- data.frame()
+  
+  # 2. Build it up INSIDE loop
+  for (i in 1:nrow(BostonWomenVoters)) {
+    if (BostonWomenVoters$Occupation[i] == Occupation) {
+      result <- rbind(result, BostonWomenVoters[i, ])
+    }
+  }
+  
+  # 3. Return AFTER loop completes
+  return(result)
+}
+bwv.housewife <- bwv.occupation("Housewife")
 
 ```
 
@@ -366,12 +411,38 @@ gg.locations("San Diego", 1980)
    - Counts how many locations are in that state
    - Returns a statement like "There are XX locations in [state]"
 ```{r}
+state.count <- 0
+count_by_state <- function (State) {
+  for (i in 1:nrow(gayguides)) {
+    if (gayguides$state[i] == State) {
+      state.count <- state.count + 1 
+    }
+  }
+  print(paste("There are", state.count, "locations in", State))
+}
+
+count_by_state("AR")
+count_by_state("SC")
+
 ```
 
 (@) Can you modify your function to also accept a year as a second argument? So `count_by_state("SC", 1975)` would count locations in SC in 1975.
 ```{r}
+state.count <- 0
+count_by_state <- function (State, Year) {
+  data(gayguides)
+
+  for (i in 1:nrow(gayguides)) {
+    if (gayguides$state[i] == State && gayguides$Year[i] == Year) {
+      state.count <- state.count + 1 
+    }
+  }
+  print(paste("In", Year, "there were", state.count, "locations in", State))
+}
+
+count_by_state("AR", 1980)
 ```
 
 (@) Reflection: How do loops, conditionals, and functions work together? Give an example from this worksheet where you used all three.
 
->
+> Loops and conditionals go hand in hand. For querying a data set, using if and for statements is helpful for finding specific information and returning it in a specific format. Functions make queries more convenient. Rather, than rewriting a loop over and over for different queries, functions make it easy to save a loop for later use. 
