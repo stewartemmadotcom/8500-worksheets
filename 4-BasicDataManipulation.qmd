@@ -174,7 +174,8 @@ gayguides %>%
 
 (@) Using the `statepopulation` data, which state has the largest population in 1850? Write code that pulls only the relevant columns (state and 1850) and sorts it accordingly. 
 ```{r}
-
+data(statepopulations)
+statepop <- statepopulations %>% select(STATE, X1850) %>% arrange(desc(X1850))
 ```
 
 
@@ -213,19 +214,26 @@ BostonWomenVoters %>%
 
 (@) How many rows in the BostonWomenVoters dataset have missing ward information? 
 ```{r}
+sum(is.na(BostonWomenVoters$Ward))
 ```
 
 (@) Why might ward information be missing for some voters? What does this tell us about the historical record?
 
->
+> 42 rows are missing ward information. Ward information may be missing because it was not recorded for particular voters. Maybe the ward changed over time. Regardless, this lets us know that the historical data is incomplete; not all the information was always recorded. 
 
 (@) Create a cleaned version of BostonWomenVoters that removes any row with missing data in the Ward or Age columns. How many rows are removed?
 ```{r}
+sum(is.na(BostonWomenVoters$Ward & BostonWomenVoters$Age))
+removena <- BostonWomenVoters %>% 
+  drop_na(Ward) %>% 
+  drop_na(Age) 
+
+sum(is.na(removena$Ward & removena$Age))
 ```
 
 (@) Sometimes we want to keep rows with missing data but identify them. Can you create a new column called `ward_missing` that is TRUE when Ward is NA and FALSE otherwise?
 ```{r}
-
+ward <- BostonWomenVoters %>% mutate(ward_missing = is.na(Ward))
 ```
 
 
