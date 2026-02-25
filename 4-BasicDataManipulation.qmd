@@ -39,16 +39,16 @@ Notice that this subsetted the data and returned only the title and year. Howeve
 
 (@) Use `select()` to take the city and state from gayguides and add them to a dataframe called "locations". 
 ```{r}
-
+locations <- gayguides %>% select(city, state)
 ```
 
 (@) What did you do to save the data to a new data frame? Why? 
 
->
+> I created a variable and assigned the operation to it. This way, instead of printing the result to the terminal it saves to a dataframe that can be accessed later. 
 
 (@) Can you use `select()` to grab all the columns of `gayguides` EXCEPT for the city and state? Hint: You might want to read the documentation for this function. 
 ```{r}
-
+nolocation <- gayguides %>% select(-city, -state)
 ```
 
 ### Filter
