@@ -99,7 +99,7 @@ seventy.five <- gayguides %>% filter(Year == 1975 & state != "NY" & city != "San
 
 (@) The amenity features column in gay guides contains a comma separated list of categorizations. (G), for example, stands for girls. However, this language changed over time and women's locations eventually are described as (L). What if we want to filter by any entry that has (G) OR (L) in the amenity feature column?  This is a bit more complicated because the entries are a comma separated list and (G) or (L) is often paired with other categorizations. How might you _search the dataframe for entries that match_ (G) or (L)?
 ```{r}
-women.locs <- gayguides %>% filter(grepl("G", amenityfeatures) | grepl("L", amenityfeatures))
+women.locs <- gayguides %>% filter(grepl("(G)", amenityfeatures) | grepl("(L)", amenityfeatures))
 ```
 
 ### Mutate
@@ -151,6 +151,7 @@ gayguides %>%
 (@) The `amenityfeatures` column contains codes for different features of each location. These are abbreviations in parentheses like (D) for dancing, (E) for entertainment, (G) for girls/women, etc. Can you create a new column called `has_dancing` that is TRUE if the amenity features include "(D)"? (Hint: Use `grepl()` to search for "(D)" within the amenityfeatures column.
 ```{r}
 gayguides.dancing <- gayguides %>% mutate(has_dancing = grepl("(D)", amenityfeatures))
+print(gayguides.dancing$has_dancing)
 ```
 
 (@) In the Boston Women Voters data, occupation names may have extra whitespace. Use `str_trim()` to clean the occupation column.

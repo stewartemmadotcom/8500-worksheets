@@ -16,7 +16,7 @@
 
 ## Challenges & Problem-Solving
 
-### Challenge 1: [Brief descriptive title]
+### Challenge 1: Grep vs. Grepl
 
 **What I was trying to do:**
 I was attempting to filter the gayguides data to find all locations that had G or L in the amenity features column using the filter function of the tidyverse. 
@@ -45,73 +45,44 @@ This reinforced for me that I need to make sure that I am using logical values w
 
 ---
 
-### Challenge 2: [Brief descriptive title]
+### Challenge 2:  Mutating a column into a factor 
 
 **What I was trying to do:**
-[Describe the task or problem]
+I was trying to use mutate to change a column to a factor instead of a character 
 
 **What went wrong:**
-[Describe the error, confusion, or roadblock]
+When I tried to check the levels of the factor, I was getting NULL in response
 
 **My problem-solving process:**
-1. [First attempt - what you did and what happened]
+1. First I double checked my code, but everything seemed right. I rewrote it in a few different ways, and then I realized that I had not saved the function's results to a new dataframe, so I do not think it was actually changing the column/saving a new one. 
 2. [Second attempt - what you did and what happened]
 3. [Additional attempts if relevant]
 
 **Resources I consulted:**
-- [ ] Documentation for [package/function]
+- [x] Documentation for [package/function]
 - [ ] Stack Overflow: [describe what you searched for]
-- [ ] Course materials: [which ones]
+- [x] Course materials: Notes
 - [ ] Slack discussion
 - [ ] Office hours
 - [ ] Other: [describe]
 
 **Resolution:**
-[What ultimately worked or where you're still stuck]
+I went ahead and saved my function to a data frame, and it worked! 
 
 **What I learned:**
-[What did this teach you about the concept, the tool, or problem-solving?]
-
----
-
-### Challenge 3 (Optional): [Brief descriptive title]
-
-**What I was trying to do:**
-[Describe the task or problem]
-
-**What went wrong:**
-[Describe the error, confusion, or roadblock]
-
-**My problem-solving process:**
-1. [First attempt - what you did and what happened]
-2. [Second attempt - what you did and what happened]
-3. [Additional attempts if relevant]
-
-**Resources I consulted:**
-- [ ] Documentation for [package/function]
-- [ ] Stack Overflow: [describe what you searched for]
-- [ ] Course materials: [which ones]
-- [ ] Slack discussion
-- [ ] Office hours
-- [ ] Other: [describe]
-
-**Resolution:**
-[What ultimately worked or where you're still stuck]
-
-**What I learned:**
-[What did this teach you about the concept, the tool, or problem-solving?]
+This taught me that the tidyverse functions wont actually change anything unless you tell it where to store the changes/create a new variable/dataframe for it. 
 
 ---
 
 ## Reflection
 
 **What I understand well now:**
-[What clicked for you this week?]
+I feel really good about the tidyverse functions we learned this week; I ran into minimal trouble and think I have a good grasp on how to properly use them. 
 
 **What I'm still confused about:**
-[What remains unclear? What questions do you have?]
+I think I could use clarification on my second challenge 
 
 **Connection to historical research:**
-[How might this week's skills apply to your research?]
+The skills from this week will come in handy for easier querying of data sets than the use of base R functions. Additionally, this skill set will be built upon next week when we start using the tidyverse to do more tidying of data. 
 
 
