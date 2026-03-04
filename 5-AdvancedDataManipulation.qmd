@@ -140,12 +140,31 @@ head(almshouse_admissions)
 (@) Below I've downloaded data about each of the census regions. Join this dataset with `gayguides`. Create a data frame that includes each of the regions and the total number of locations in 1980. How many locations appear in the Mountain region in 1980?
 ```{r}
 regions <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/censusregions.csv")
+str(regions)
+gg.regions <- left_join(gayguides, regions, by=c("state"="State.Code"))
+
+gg.regions.ordered <- gg.regions %>% 
+  filter(Year == 1980) %>%
+  group_by(Region) %>%
+  summarize(n())
 ```
 
-(@) Explain what you did above. What variable did you join by and why? What results?
+(@) Explain what you did above. What variable did you join by and why? What results? 
+> I first joined the two data frames with a left join. I joined them by the column state in gayguides and the column State.Code in regions because they are written in the same way and should match. Next, I filtered for the year 1980(so that I would only get results for that year), grouped by region (since that is all the information necessary for this inquiry), and summarized the number for each of those regions. All of that was put into a new data frame I called gg.regions.ordered. 
 
 (@)How much did LGTBQ life grow between 1970 and 1980? Can you create a data frame that computes the growth in the number of locations between 1970 and 1980 for every state? For every region? 
 ```{r}
+state.growth <- gayguides %>%
+  filter(Year == 1970 | Year == 1980) %>%
+  group_by(state, Year) %>%
+  summarize(count = n()) %>%
+  arrange(state, desc(Year))
+
+region.growth <- gg.regions %>%
+  filter(Year == 1970 | Year == 1980) %>%
+  group_by(Region, Year) %>%
+  summarize(count = n()) %>%
+  arrange(Region, desc(Year))
 
 ```
 
