@@ -165,7 +165,6 @@ region.growth <- gg.regions %>%
   group_by(Region, Year) %>%
   summarize(count = n()) %>%
   arrange(Region, desc(Year))
-
 ```
 
 
@@ -184,11 +183,17 @@ sc.parks <- sc.parks %>%
 ```
 
 (@) What did this code do? 
->
+> This code left the columns city and type of worker alone, and then changed the rest of the columns to one called year and moved their values to a column called count. 
 
 (@) Here's another wide data frame. Can you turn this from a wide to a narrow data frame? 
 ```{r}
 rec.spaces <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/PlayAreabyType.csv")
+
+str(rec.spaces)
+head(rec.spaces)
+
+rec.spaces <- rec.spaces %>% 
+  pivot_longer(!type, names_to = "year", values_to = "count")
 ```
 
 The opposite of `pivot_longer()` is `pivot_wider()`. It "widens" data by increasing the number of columns and decreasing the number of rows. We can revert `sc.parks` back to a wide dataset using this function.
@@ -199,12 +204,14 @@ sc.parks %>%
 
 (@) Widen the `sc.parks` dataset so that the column names are drawn from the type of recreation worker.
 ```{r}
-
+sc.parks <- sc.parks %>% 
+  pivot_wider(names_from = type_of_worker, values_from = count)
 ```
 
 (@) Turn `rec.spaces` into a wide dataframe. 
 ```{r}
-
+recspaces <- rec.spaces %>% 
+  pivot_wider(names_from = year, values_from = count)
 ```
 
 ## Working with Factors using `forcats`
@@ -240,11 +247,11 @@ levels(BostonWomenVoters$Occupation)
 
 (@) How many different occupations are there?
 
->
+>1137 
 
 (@) Look at the levels. Do you notice any that could be combined or standardized? List a few examples.
 
->
+>Waitress, waitress, Waitres, Waitress ; unemployed, Unemployed; typist, Typist; Tutor, Tutor , Trained nuse, Trained nurse , Trained Nurse, trained nurse, Trained [nurse], Train nurse
 
 ### `fct_count()` - Counting Factor Levels
 
@@ -258,7 +265,7 @@ BostonWomenVoters %>%
 
 (@) What are the three most common occupations?
 
->
+> Housewife, Clerk, Stenographer, Bookkeeper, None; Most of these are different variations of Housewife/housekeeper 
 
 ### `fct_lump()` - Combining Small Categories
 
@@ -273,7 +280,12 @@ BostonWomenVoters %>%
 This kept the 5 most common occupations and combined everything else into "Other".
 
 (@) Use `fct_lump()` to keep the top 10 occupations. How many voters are in the "Other" category?
+> 4,759 
 ```{r}
+BostonWomenVoters %>% 
+  mutate(occupation_lumped = fct_lump(Occupation, n = 10)) %>% 
+  count(occupation_lumped) %>% 
+  arrange(desc(n))
 ```
 
 ### `fct_reorder()` - Reordering by Another Variable
@@ -283,14 +295,14 @@ By default, factors are ordered alphabetically. But often you want them ordered 
 # Count by occupation
 occupation_counts <- BostonWomenVoters %>%
   count(Occupation) %>%
-  filter(n > 30)  # Only occupations with more than 30 people
+  filter(n > 10)  # Only occupations with more than 30 people
 
 ```
 ### `fct_reorder()` with Other Variables
 
 You can also reorder by variables other than count. For example, order occupations by average age:
 ```{r}
-BostonWomenVoters %>%
+age.occ <- BostonWomenVoters %>%
   group_by(Occupation) %>%
   summarize(avg_age = mean(Age, na.rm = TRUE),
             count = n()) %>%
@@ -300,7 +312,7 @@ BostonWomenVoters %>%
 
 (@) Which occupations have the youngest average age? Which have the oldest? What might this tell us historically?
 
->
+> The occupation "student" has the youngest average age, at 22.9. "None" and "housekeeper" have the highest average ages, at 54 and 52.8. Just looking at the lowest and highest ages, it is difficult to say, but this might tell us that a generational divide was happening between older women, who traditionally did not work outside of the home, and the younger generation, who were more likely to do so. 
 
 ### `fct_recode()` - Renaming Factor Levels
 
@@ -320,6 +332,18 @@ BWV.occupations <- BostonWomenVoters %>%
 
 (@) Look at the occupation levels. Find at least 3 more occupations that could be recoded to be more standardized or descriptive. Create a new column with your recoded occupations.
 ```{r}
+B.occupations <- BostonWomenVoters %>% 
+  mutate(
+    Occupation_clean = fct_recode(Occupation,
+      "Ass't buyer" = "Assistant Buyer",
+      "Asst Buyer" = "Assistant Buyer",
+      "book binder" = "Book binder",
+      "Book bindery" = "Book binder"
+    )
+  ) %>% 
+  count(Occupation_clean) %>% 
+  arrange(desc(n))
+
 ```
 
 ### `fct_collapse()` - Combining Multiple Levels into Categories
@@ -343,9 +367,21 @@ Note that this dataset is still really long. We'd have to add all the categories
 
 (@) Create your own categorization scheme for occupations. Combine related occupations into 5-7 broader categories that make historical sense. Consider categories like professional, domestic, skilled labor, etc. Explain your reasoning.
 ```{r}
+testing <- BostonWomenVoters %>% 
+  mutate(
+    occupation_category = fct_collapse(Occupation, 
+    "Service" = c("Waitress", "Cashier", "Maid"),
+    "Medical" = c("Graduate nurse", "Physician", "nurse", "Nurse"),
+    "Textiles" = c("Dressmaker", "Seamstress", "Stitcher", "Milliner"),
+    "Domestic" = c("At Home", "at home", "H.W.", "house keeper", "House-keeper", "Housewife", "Housekeeper", "At home", "Housework", "House-wife", "housewife", "Married", "married, housewife", "Married Housewife", "house-wife"),
+    "Public Service" = c("Social worker", "School teacher", "School teacher")
+    )
+  ) %>% 
+  count(occupation_category) %>% 
+  arrange(desc(n))
 ```
 
-> Explain your reasoning. 
+> Explain your reasoning: I chose these categories, partially because I did not want to copy the ones above, but mostly because they encompass a good portion of the type of work these women were doing. Although a trade/skilled work category would be good, I decided to use a textiles category because so many of the women were employed as seamstresses, stitchers, dressmakers, etc. I also chose public service, which includes jobs like public ed teachers and social workers. I think these categories help get across the types of work that attracted women/were available to them while also demonstrating a range of education/likely pay rates. 
 
 ### `fct_relevel()` - Manual Reordering
 
