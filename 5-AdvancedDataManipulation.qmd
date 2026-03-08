@@ -538,6 +538,18 @@ ymd("1935-06-15") %within% prohibition  # FALSE
 
 (@) Create intervals for different decades (1960s, 1970s, 1980s). For each entry in `gayguides`, determine which decade interval it falls into.
 ```{r}
+sixties <- interval(ymd("1960-01-01"), ymd("1969-12-31"))
+seventies <- interval(ymd("1970-01-01"), ymd("1979-12-31"))
+eighties <- interval(ymd("1980-01-01"), ymd("1989-12-31"))
+
+gayguides <- gayguides %>% 
+  mutate(date_string = paste("January 1, ", Year))
+gayguides <- gayguides %>% 
+  mutate(date = mdy(date_string))
+
+gayguides$date %within% sixties
+gayguides$date %within% seventies
+gayguides$date %within% eighties
 ```
 
 ### Handling Historical Dates
@@ -555,11 +567,18 @@ year_month <- ymd(paste0("1920-06", "-01"))
 
 (@) Some historical records might only have a year. Create a function that takes a year and returns a date object for January 1st of that year. Test it with several years.
 ```{r}
+return.date <- function(year) {
+  print(paste0(year, "-01-01"))
+}
+
+return.date(1970)
+return.date(1981)
+return.date(1643)
 ```
 
 (@) Reflect: What challenges might you encounter when working with dates in historical sources? How might `lubridate` help address some of these challenges?
 
->
+>Historical sources may list dates in non-uniform ways, and lubridate can help R read those more easily. If I want to calculate birth dates, like we did with the Boston women voters, I could also do some math using lubridate to do so. 
 
 ## Putting it all together
 Each of the functions covered in this worksheet and in last week's worksheet are valuable tools for manipulating datasets. But they are more powerful when combined. When using them to pair down a dataset, we are asking and answering a question. For example in this code from earlier in our worksheet:
