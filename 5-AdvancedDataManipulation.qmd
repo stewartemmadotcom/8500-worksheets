@@ -450,7 +450,8 @@ These all create "Date" objects that R knows how to work with.
 library(tidyverse)
 dmy("01-02-2020")
 date <- c("01-02-2020", "2020-03-21", "23-01-2025")
-mdy(date)
+date2 <- c("01-20-2020", "03-14-2020", "12-23-2000")
+mdy(date2)
 ```
 
 ### Creating Date Columns
@@ -468,6 +469,12 @@ events %>%
 
 (@) The `gayguides` data has a Year column but no full dates. Create a date column assuming all entries are from January 1st of that year. (Hint: use `paste()` to create a string like "1970-01-01", then parse it)
 ```{r}
+data(gayguides)
+gg.dates <- gayguides %>% 
+  mutate(date_string = paste("January 1, ", gayguides$Year))
+
+gg.dates <- gg.dates %>% 
+  mutate(date = mdy(date_string))
 ```
 
 ### Extracting Components from Dates
@@ -485,6 +492,9 @@ wday(dates, label = TRUE)   # Get day of week
 
 (@) Using the dates you created above for `gayguides`, extract the decade from the date. Compare it to using `floor(Year / 10) * 10` directly on the Year column. Do you get the same result?
 ```{r}
+floor(year(gg.dates$date)/10) * 10
+floor(gayguides$Year/10) * 10
+
 ```
 
 ### Date Arithmetic
@@ -505,6 +515,11 @@ start_date + months(6)   # 6 months later
 
 (@) The Boston Women Voters data was collected in 1920. Each person has an age. Calculate each person's approximate birth year using `1920 - Age`. Then create a proper birth date assuming they were born on July 1st of that year.
 ```{r}
+BostonWomenVoters <- BostonWomenVoters %>% 
+  mutate(birth_string = paste("July 1, ", 1920 - Age))
+
+BostonWomenVoters %>% 
+  mutate(birth_date = mdy(birth_string))
 ```
 
 ### Working with Intervals
