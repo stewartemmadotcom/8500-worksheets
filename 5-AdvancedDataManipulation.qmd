@@ -591,28 +591,54 @@ gayguides %>%
 The implicit question was, "How many locations appear in each year?". The `judges` dataset in provided in the DigitalMethodsData package is a large, messy, wide dataframe that contains a lot of information. Look at this dataframe and then compose a question to ask of the data.
 
 (@) First, tell me, what is the question you are asking? 
+> I want to compare the number of women and men of different races/ethnicities who were judges.
 ```{r}
 data(judges)
+str(judges)
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
 ```{r}
-
+judges.g <- judges %>% 
+  select(Last.Name, First.Name, Gender, Race.or.Ethnicity) %>% 
+  group_by(Gender, Race.or.Ethnicity) %>% 
+  summarize(count = n())
 ```
 
 (@) Now ask a question of the `gayguides` data (or another dataset of your choice). What is the question you are asking? 
+> How many locations were there over the years in OKC that were woman-friendly? 
+> Total of 53 
 ```{r}
+w.gg.okc <- gayguides %>% 
+  filter(state == "OK", city == "Oklahoma City") %>% 
+  filter(grepl("G|L", amenityfeatures)) %>% 
+  arrange(Year)
 
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
 ```{r}
-
+w.gg.okc <- gayguides %>% 
+  filter(state == "OK", city == "Oklahoma City") %>% 
+  filter(grepl("G|L", amenityfeatures)) %>% 
+  arrange(Year)
 ```
 
 (@) Write a function that filters the gay guides dataset. It should accept 2 arguments: year and state. When passed to the function the function should return only the title, type, state and year for each entry. 
 ```{r}
+str(gayguides)
+ttsy <- function(gyear, gstate) {
+  data(gayguides)
 
+  gayguides %>%
+  filter(state == gstate, Year == gyear) %>%
+  select(title, type, state, Year)
+}
+
+ttsy(1981, "OK")
+ttsy(1970, "CA")
+ttsy(1985, "AR")
+ttsy(1983, "OR")
 ```
 
 (@) Lets try another, using the BostonWomenVoters data, answer this question: "How did the age distribution of women in different occupational categories vary across wards?"
@@ -624,10 +650,31 @@ Your analysis should:
 - Calculate average age, minimum age, and maximum age for each group
 - Arrange the results in a meaningful way
 ```{r}
+BWV.Occ <- BostonWomenVoters %>%
+  mutate(
+    occupation_category = fct_collapse(Occupation,
+      "Professional" = c("Teacher", "Nurse", "Social worker", "Physician", "School Teacher", "School teacher", "Teaching", "Librarian"),
+      "Clerical" = c("Clerk", "Stenographer", "General clerk", "Secretary", "Bookkeeper", "Invoice Clerk", "stenographer"),
+      "Domestic" = c("Housewife", "At Home", "At home", "Housekeeper", "Married, Housewife", "Married, housewife", "housewife")
+    ),
+    # Order by typical class hierarchy
+    occupation_category = fct_relevel(occupation_category, 
+                                     "Professional", "Clerical", "Domestic")
+  )
+
+BWV.Occ2 <- BWV.Occ %>% 
+  group_by(Ward, occupation_category, na.rm = TRUE) %>%
+  summarize(
+    count = n(),
+    avg_age = mean(Age, na.rm=TRUE),
+    min_age = min(Age, na.rm=TRUE),
+    max_age = max(Age, na.rm=TRUE)) %>%
+  arrange(desc(count), occupation_category)
+
 ```
 
 (@) What did you discover? Write 2-3 sentences about what this tells us about Boston women voters.
 
->
+> The largest category by far is Domestic workers, whose average age differs based on ward but is somewhere between 39 and 47. The oldest domestic is 91 and the youngest is 20. The average age among clerical workers, the second largest occupation category, was between 34 and 27. For professionals, the smallest category, was around 32. This makes historical sense, as younger women likely had more educational and career opportunities. 
 
 
