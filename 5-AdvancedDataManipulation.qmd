@@ -406,9 +406,21 @@ Now when you use this factor in a plot or table, it will appear in this conceptu
 
 (@) Create occupation categories and relevel them in an order that makes sense historically. Explain why you chose this order.
 ```{r}
+BostonWomenVoters %>% 
+  mutate(
+    occupation_category = fct_collapse(Occupation,
+      "Traditional Ed" = c("Teacher", "Nurse", "Physician"),
+      "Skilled" = c("Dressmaker", "Seamstress", "Stitcher"),
+      "Unskilled" = c("Houswife", "Maid", "Cashier", "Waitress", "At home"),
+    ),
+    occupation_category = fct_relevel(occupation_category,
+      "Traditional Ed", "Skilled", "Unskilled")
+  ) %>% 
+  pull(occupation_category) %>%
+  levels()
 ```
 
-> Explanation:
+> Explanation: I arranged the levels based on educational level/type, using a traditional education category, a skilled category, and unskilled category (however problematic that may be). This could be useful for determining the percentage of voters who obtained education or didn't. 
 
 
 ## Working with Dates using `lubridate`
@@ -435,6 +447,10 @@ These all create "Date" objects that R knows how to work with.
 
 (@) Create a vector of dates in different formats and parse them using the appropriate lubridate functions.
 ```{r}
+library(tidyverse)
+dmy("01-02-2020")
+date <- c("01-02-2020", "2020-03-21", "23-01-2025")
+mdy(date)
 ```
 
 ### Creating Date Columns
@@ -542,7 +558,7 @@ The implicit question was, "How many locations appear in each year?". The `judge
 
 (@) First, tell me, what is the question you are asking? 
 ```{r}
-
+data(judges)
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
