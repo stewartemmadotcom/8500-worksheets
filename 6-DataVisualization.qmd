@@ -24,6 +24,7 @@ Any type of plot in R has 3 necessary layers.
 
 Lets load all the libraries we'll use in this worksheet: 
 ```{r message=FALSE, warning=FALSE}
+install.packages("gapminder")
 library(gapminder) #this is a dataset
 library(ggplot2) 
 library(tidyverse)
@@ -36,7 +37,7 @@ data(gapminder)
 
 (@) Take a look at the data. What can you say about it? 
 
-> 
+> Gapminder is a data set that includes different countries in different years along with demographic information about their life expectancy, population, and GDP per capita. 
 
 This data includes variables for life exptenency and per capita GDP. Lets say we want to plot these two variables against each other for all country-years within the dataset. First we have to tell `ggplot()` what our data is. 
 ```{r}
@@ -64,7 +65,9 @@ To summarize what we did above, there were 3 steps we went through. First, tell 
 
 (@) Modify the above plot so that the variables it draws on are life expectancy and population. Then, use a comment to annotate the code and mark each of the 3 parts described above.
 ```{r}
-
+p <- ggplot(date = gapminder) # here, I am reading the data from gapminder to ggplot 
+p <- ggplot(data = gapminder, mapping = aes(x = pop, y = lifeExp)) # next, I tell ggplot what I want to map to the x and y axes 
+p + geom_point() # finally, I tell ggplot what shape/form I want the graph to be in 
 ```
 
 We can make this plot even more complex. Adding another value, color, to `aes()` we can change the color of each dot to correspond to a year. We also might want to rename the x and y-axis so that the labels have a more useful description of the variable. We can do so using the labs function. 
@@ -75,13 +78,15 @@ ggplot(data = gapminder, mapping = aes(x = gdpPercap, y=lifeExp, color=year)) + 
 
 (@) Using the same plot above, can you edit the code to add a trend line? (Hint: You'll need to add another geom)
 ```{r}
-
+ggplot(data = gapminder, mapping = aes(x = gdpPercap, y=lifeExp, color=year)) + geom_point() + geom_smooth() + labs(x="GDP Per Capita", y="Life Expectency in Years", title="Life Expectency and Per Capita GDP by Year") 
 ```
 
 
 (@) The file below contains data about the population of cities in 1930 and their recreation expenditures. Can you create a scatter plot from this data? 
 ```{r}
 rec <- read.csv(file = "https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/Recreation-Expenditures.csv")
+
+ggplot(data = rec, mapping = aes(x = population, y = total_expenditures, color=city)) + geom_point() 
 ```
 
 The `geom_point()` function allows us to create scatterplots but its not the only geom within `ggplot2()`.
@@ -99,17 +104,19 @@ ggplot(recreational.data, aes(x = population)) +
 
 (@) Use the Boston Women's voters dataset to create a histogram of the age of voters. 
 ```{r}
-
+library(DigitalMethodsData)
+data(BostonWomenVoters)
+ggplot(BostonWomenVoters, aes(x = Age)) + geom_histogram()
 ```
 
 (@) By default, `geom_histogram()` is choosing the number of bins. Can you change the number of bins or the bin width? (Hint: How might you look up the options for this function?)
 ```{r}
-
+ggplot(BostonWomenVoters, aes(x = Age)) + geom_histogram(bins=71, color="black", fill="lightblue")
 ```
 
 (@) Explain, what does changing the number of bins do? 
 
-> 
+> Changing the number of bins compresses or stretches out the width of the bars on the graph. I used 71 bins because that is about the age range of voters, so each bar basically represents one age. If I wanted to represent age ranges, I would have chosen a smaller number of bins. 
 
 ### Barplots 
 
