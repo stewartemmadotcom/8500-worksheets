@@ -130,20 +130,38 @@ ggplot(sc.rec, aes(x = state, y = state.expenditures )) +
 
 (@) Using the `gayguides` data, create a bar chart that shows the number of locations in 1980 in South Carolina, Georgia, and North Carolina. 
 ```{r}
+data(gayguides)
+gg_south <- gayguides %>% filter(state == "SC" | state == "GA" | state == "NC")
+south1980 <- gg_south %>% filter(Year == 1980) %>% group_by(state) %>% summarize(count = n())
 
+ggplot(data = south1980, aes(x = state, y = count)) + geom_col()
 ```
 
 (@) Using the `gayguides` data, plot the number of religious institutions in each state.
 ```{r}
+unique(gayguides$type)
+grepl("Religious", gayguides$type)
+religious_gg <- gayguides %>% filter(grepl("Religious", gayguides$type))
 
+religious_bystate <- religious_gg %>% group_by(state) %>% summarize(count = n())
+
+ggplot(data = religious_bystate, aes(x=state, y=count)) + geom_col()
 ```
 
 (@) Formulate a question based on a dataset of your choice. That question should be something that would be appropriately answered by a bar chart. What is the question you want to explore?
 
-<
+> Based on the gayguides data frame, what was the distribution of locations that catered to women across the states? 
 
 (@) Now write the code to answer that question and use comments (`#`) to explain your thinking as you go.
 ```{r}
+women.locs <- gayguides %>% 
+  filter(grepl("G|L", gayguides$amenityfeatures)) # here, I am filtering the gayguides dataset to identify that locations that catered to women
+  %>% group_by(state)  # next, I sort the data by state
+  %>% summarize(count = n()) # and summarize with a column called count
+
+ggplot(data=women.locs, aes(x=state, y=count)) + geom_col() # finally, I use the subsetted data to create a bar chart with states on the X axis and the number of locations catered to women on the Y axis. 
+
+# As expected, CA and NY have the highest number of locations catered to women; this does not tell me much because those states had the highest number of locations over all. Maybe it would be more interesting if I graphed the percentage of locations in each state that catered to women... 
 
 ```
 
