@@ -203,19 +203,29 @@ ggplot(gg.byyear, aes(x = Year, y = count)) +
 
 (@) Using the state recreation data, can you create a chart that outlines the total expenditures in South Carolina by city?
 ```{r}
+str(recreational.data)
+sc.rec <- recreational.data %>% filter(state == "SC")
 
+ggplot(sc.rec, aes(x = city, y = total_expenditures)) + 
+  geom_col() + facet_wrap(~city)
 ```
 
 (@) Using the gayguides data can you select 5 types of locations and chart the number of each type between 1965 and 1980? 
 ```{r}
+unique(gayguides$type)
+ggtypes <- gayguides %>% filter(type == "Cruising Areas" | type == "Book Store" | type == "Restaurant" | type == "Bars/Clubs" | type == "Hotel") %>% filter(Year >= 1965 & Year <= 1980) %>% group_by(type, Year) %>% summarize(count = n())
 
+ggplot(ggtypes, aes(x=Year, y=count)) + geom_line() + facet_wrap(~type)
 ```
 
 (@) Using this recreation dataset from last week, can you find the average number of volunteer and paid workers over time? 
 ```{r}
 rec.workers <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/RecreationData-Wide.csv")
+str(rec.workers)
+unique(rec.workers$type_of_worker)
+avgworkers <- rec.workers %>% pivot_longer(!city:type_of_worker, names_to="year", values_to="count") %>% group_by(type_of_worker, year) %>% summarize(count = n())
 
-
+ggplot(avgworkers, aes(x=year, y=count)) + geom_col() + facet_wrap(~type_of_worker)
 ```
 
 ### Practice
@@ -223,25 +233,50 @@ In the slots below use the datasets for class (or a dataset of your choice) to c
 
 (@) Plot 1
 ```{r}
+women.locs <- gayguides %>% 
+  filter(grepl("G|L", gayguides$amenityfeatures)) %>% 
+  group_by(Year) %>%
+  summarize(count = n())
+total.locs <- gayguides %>% 
+  group_by(Year) %>%
+  summarize(count = n())
 
+plot1 <- ggplot(women.locs, aes(x=Year, y=count)) + geom_line() + scale_y_continuous(limits=c(0, 5000))
+
+plot2 <- ggplot(total.locs, aes(x=Year, y=count)) + geom_line() + scale_y_continuous(limits=c(0,5000))
+
+install.packages("patchwork")
+library(patchwork)
+
+plot1 | plot2
 ```
 
 (@) Plot 1 explanation: 
->
+> I plotted the locations that catered to women over the course of the time period of the data set. I decided to also set this plot next to one that showed the total number of locations over time so as to contextualize the first graph. Here, you can really visualize how male-dominated the Bob Damron guides were. 
 
 (@) Plot 2
 ```{r}
-
+women.locs <- gayguides %>% 
+  filter(grepl("G|L", gayguides$amenityfeatures)) %>% 
+  group_by(Year) %>%
+  summarize(count = n()) %>% 
+  mutate(percent_increase = count - lag(count)/lag(count)) * 100
+ggplot(women.locs, aes(x=Year, y=percent_increase)) + geom_col()
 ```
 
 (@) Plot 2 explanation: 
->
+>Here, I also mapped women locations; however, I used a bar chart and a simple equation to map the percent increase/decrease each year of the number of locations.
 
 (@) Plot 3. For this one, try a different kind of plot. [Check out a useful gallery here.](https://github.com/regan008/DigitalMethodsData/blob/main/raw/RecreationData-Wide.csv)
 (For this week, avoid choosing a map. We'll talk more about maps and geographic data over the next two weeks.)
 ```{r}
+plot1 <- ggplot(women.locs, aes(x=Year, y=count)) + geom_area() + scale_y_continuous(limits=c(0, 5000))
 
+plot2 <- ggplot(total.locs, aes(x=Year, y=count)) + geom_area() + scale_y_continuous(limits=c(0,5000))
+
+plot1 | plot2
+plot1 / plot2
 ```
 
 (@) Plot 3 explanation: 
->
+>Here, I again graphed the locations that catered to women and the total locations. This time, I used an area chart, which I think helps readers process the information more quickly. Additionally, I decided to stack the plots rather than put them side to side so that it is more clear these are not continuous with one another and are plotting separate things. 
