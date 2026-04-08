@@ -154,7 +154,7 @@ tidy_sotu_words <- tidy_sotu %>%
   anti_join(stop_words)
 
 tidy_sotu_words
-
+tidy_sotu
 #another way to do this would be to filter by words NOT in the stop word list like this:  filter(!word %in% stop_words$word)
 ```
 
