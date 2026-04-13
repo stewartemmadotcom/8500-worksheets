@@ -432,3 +432,51 @@ mb.tfidf %>% arrange(desc(tf_idf)) # next I calculated the tf idf scores for eac
 
 Write a text analysis script that explores and asks questions of the texts. At the end write a summary that analyzes the results you found. Be sure to rely on your historical knowledge. What can we learn from applying the strategies you've learned in this worksheet to analyze these documents?
 
+```{r}
+unlink("txt", recursive = TRUE)  # Delete the txt folder
+download.file("https://github.com/regan008/8510-TextAnalysisData/raw/refs/heads/main/TheWomanCitizen.zip", "TheWomanCitizen.zip")
+unzip("TheWomanCitizen.zip")
+
+metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/WomanCitizenMetadata.csv")
+wc <- readtext(paste(getwd(), "/TheWomanCitizen/*.txt", sep=""))
+
+wc <- wc %>% arrange(desc(doc_id))
+metadata <- metadata %>% arrange(desc(filename))
+
+wc.whole <- metadata %>% 
+  left_join(wc, by = c("filename" = "doc_id")) %>% 
+  as_tibble()
+
+wc.tidy <- wc.whole %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
+wc.tidy %>% 
+  count(filename, word, sort = TRUE)
+
+wc.tfidf <- wc.tidy %>% 
+  count(filename, word, sort = TRUE)  %>%  
+  bind_tf_idf(word, filename, n) 
+wc.tfidf %>% arrange(desc(tf_idf))
+
+wc.wordpairs <- wc.whole %>% 
+  mutate(speech_end = word(text, -5000, end = -1)) %>%  # extract last 100 words
+  unnest_tokens(word, speech_end) %>%   # tokenize
+  filter(!word %in% stop_words$word) %>%  # remove stopwords
+  pairwise_count(word, filename, sort = TRUE, upper = FALSE) # don't include upper triangle of matrix
+
+head(wc.wordpairs)
+
+wc.wordpairs %>% 
+  filter(n >= 10) %>%  # only word pairs that occur 200 or more times
+  graph_from_data_frame() %>% #convert to graph
+  ggraph(layout = "fr") + # place nodes according to the force-directed algorithm of Fruchterman and Reingold
+  geom_edge_link(aes(edge_alpha = n, edge_width = n), edge_colour = "tomato") +
+  geom_node_point(size = 5) +
+  geom_node_text(aes(label = name), repel = TRUE, 
+                 point.padding = unit(0.2, "lines")) +
+  theme_void()
+
+```
+
+> I think that for this data, I would need to change up the stop words. A lot of the information I am finding here is in regard to the newspaper itself, with words like subscriber being pretty prominent. However, there are also lots of words that relate to politics, like president, diplomacy, and amendment. Because this is a suffrage journal, it makes sense that there are many government oriented words. Wilson, power, workers, war, suffrage, american, and women are also very prominent. Given the historical context of WWI and Woodrow Wilson's presidency, as well as the suffrage movement's campaign for women's right to vote, all of these words make sense. Even if I didn't know what the journal was about prior to running this text analysis, the tfidf score would key me in. 
