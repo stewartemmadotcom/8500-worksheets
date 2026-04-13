@@ -196,7 +196,7 @@ tidy_sotu <- sotu_whole %>%
 ```
 (@) Before we move forward, take a minute a describe the chunk of code you just ran. What does each section do and how does it reflect the workflow for a topic modeling project? What are the important steps that are unique to topic modeling? 
 
->
+>First, we made the sotu metadata into a dataframe. Then, we read the text to a variable. Next, we arranged the data by president and combined the metadata with the texts into one dataframe called sotu_whole. Then, we tokenized the words and removed stop words. Tokenization of words and removing stop words is essential to topic modeling because we want each word to stand alone for analysis and we do not want to analyze frequent, less significant words like "the". 
 
 
 The most basic kind of analysis we might be interested in doing is counting words. We can do that easily using the `count()` function: 
@@ -227,7 +227,7 @@ tidy_sotu %>%
 We also might want to ask about the average length of each president's state of the union address. Who had the longest speech and who had the shortest?
 ```{r}
 sotu.length <- tidy_sotu %>%
-  count(president, doc_id)  %>% 
+  count(president, doc_id) %>% 
   group_by(president) %>% 
   summarize(avg_words = mean(n)) %>% 
   arrange(desc(avg_words))
@@ -235,11 +235,26 @@ sotu.length <- tidy_sotu %>%
 
 (@) Think back to the metadata that we loaded about these speeches. Why are the STOU addresses for more modern president's shorter than others? (For example Bush vs Teddy Roosevelt)
 
->
+> Modern presidents speeches are meant to be broadcast on TV and are more theatrical than earlier presidents. 
 
 (@) Filter the dataset to address this discrepancy and the recreate these statistics: 
 ```{r}
-
+length_1947 <- sotu_whole %>%
+  filter(year >= 1947) %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  count(president, doc_id) %>%
+  group_by(president) %>%
+  summarize(avg_words = mean(n)) %>% 
+  arrange(desc(avg_words))
+length_before <- sotu_whole %>% 
+  filter(year < 1947) %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words) %>% 
+  count(president, doc_id) %>% 
+  group_by(president) %>% 
+  summarize(avg_words = mean(n)) %>% 
+  arrange(desc(avg_words))
 ```
 
 ### Term Frequency
@@ -269,7 +284,7 @@ tidy_sotu %>%
 ```
 (@) The code above is commented to help you follow it. Walk through the code above, and explain what each line does in your own words. If its a function you are unfamiliar with, look up the documentation.
 
-> 
+> The first line counts the number of occurences for each word and then groups those counts by president. The mutate lines creates two columns; one gives the total number of words in that document and the other provides the frequency of that word by dividing it by the total number of words. Then, we arrange the dataframe in descending order and find the single top word (in term frequency) for each president. Finally, we print all of those top words to the console. 
 
 ### TF-IDF
 
@@ -308,8 +323,21 @@ sotu.tf.idf %>% arrange(desc(tf_idf))
 (@) Pick a president who served more than one term. Filter the dataset and generate both raw word counts and tf-idf scores for that president. What words are most significant in each method? Why and what does that tell you about that president and their administration?  
 
 ```{r}
+str(tidy_sotu)
+unique(tidy_sotu$president)
+
+fdr.tfidf <- tidy_sotu %>% 
+  filter(president == "Franklin D. Roosevelt") %>% 
+  count(doc_id, word, sort=TRUE) %>% 
+  bind_tf_idf(word, doc_id, n) 
+fdr.tfidf %>% arrange(desc(tf_idf))
+
+fdr.words <- tidy_sotu %>% 
+  filter(president == "Franklin D. Roosevelt") %>% 
+  count(doc_id, word, sort = TRUE)
 
 ```
+> I chose FDR. When I used the tf-idf score, words like autocracy, projects, popular, rulers were in the top for years prior to WWII. Then, words like hitler, axis, and nurses were in the top during the war years. When I just used raw word count, I got war for most years, then government, peace, world, and forces for others. These raw word counts make sense, considering FDR was president during WWII and would have been frequently addressing the conflict in his speeches. However, we can see more nuance with the tf-idf scores about his specific concerns: hitler, the axis powers; I wonder if nurses refers to the nurses working with the military. Also, the words for his earlier years of presidency clearly focus on the New Deal relief programs. 
 
 ### Co-Occurance
 Co-occurrence gives us a sense of words that appear in the same text, but not necessarily next to each other. It shows words that are likely to co-occur. Note that this is different than topic modeling, which we'll discuss next week. 
@@ -328,6 +356,8 @@ head(sotu_word_pairs)
 
 Now we have a list of words that appear near each other in the text as well as the frequency. Once again this dataset is far too large to look at in a data frame. Instead, we'll create a network graph that shows us the relationships between words for any words that appear more than 200 times. I chose 200 after looking at the above dataset and seeing that the highest count was 239. You want the network graph to be manageable and not too large. 
 ```{r}
+install.packages("igraph")
+install.packages("ggraph")
 library(igraph)
 library(ggraph)
 
@@ -343,7 +373,10 @@ sotu_word_pairs %>%
 ```
 (@) Create a network graph that shows the relationship between words that appear between 125 and 175 times.
 ```{r}
-
+sotu_word_pairs %>% 
+  filter(n >= 135 & n <= 175) %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = "fr") + geom_edge_link(aes(edge_alpha = n, edge_width = n), edge_colour = "tomato") + geom_node_point(size = 5) + geom_node_text(aes(label = name), repel = TRUE, point.padding = unit(0.2, "lines")) + theme_void()
 ```
 
 ## Analyzing Historical Journals
@@ -361,11 +394,36 @@ unzip("MindAndBody.zip")
 metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/mb-metadata.csv")
 
 mb <- readtext(paste(getwd(), "/txt/*.txt", sep=""))
+
+metadata <- metadata %>% arrange(desc(Filename))
+mb <- mb %>% arrange(desc(doc_id))
+mb.whole <- left_join(metadata, mb, by= c("Filename" = "doc_id"))
+
+mb.whole <- 
+  metadata %>%  
+  bind_cols(mb) %>% # combine with texts
+  as_tibble() # convert to tibble for better screen viewing
+
+
 ```
 
 (@) Add code chunks below and intersperse text to explain what you are doing and why.
 
+```{r}
+mb.tidy <- mb.whole %>% # here, I am tidying the data by tokenizing the words and removing stop words 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words)
 
+str(mb.tidy)
+
+mb.tidy %>% #here I calculate the raw numbers words 
+  count(doc_id, word, sort = TRUE)  
+
+mb.tfidf <- mb.tidy %>% 
+  count(doc_id, word, sort = TRUE)  %>%  
+  bind_tf_idf(word, doc_id, n) 
+mb.tfidf %>% arrange(desc(tf_idf)) # next I calculated the tf idf scores for each word and put in descending order; it looks like there are lots of measurements (for recipes?) in these documents 
+```
 
 
 
