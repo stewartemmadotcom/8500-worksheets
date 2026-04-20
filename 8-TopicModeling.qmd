@@ -1,10 +1,10 @@
 ---
-title: 'Worksheet 6: Topic Modeling'
-author: ''
-date: ''
+title: 'Worksheet 8: Topic Modeling'
+author: Emma Stewart
+date: April 14, 2026
 ---
 
-_This is the sixth in a series of worksheets for History 8500 at Clemson University. The goal of these worksheets is simple: practice, practice, practice. The worksheet introduces concepts and techniques and includes prompts for you to practice in this interactive document. When you are finished, you should change the author name (above), render your document to a pdf, and upload it to canvas. Don't forget to commit your changes as you go and push to github when you finish the worksheet._
+_This is the eigth in a series of worksheets for History 8500 at Clemson University. The goal of these worksheets is simple: practice, practice, practice. The worksheet introduces concepts and techniques and includes prompts for you to practice in this interactive document. When you are finished, you should change the author name (above), commit your changes, push to GitHub, and submit the link to your worksheet repository on Canvas. Don't forget to commit your changes as you go - you should make multiple commits as you work through the worksheet, not just one at the end. Also, remember to update your learning log in the `logs/` folder of your repository as you work through the assignment._
 
 Text analysis is an umbrella for a number of different methodologies. Generally speaking, it involves taking a set (or corpus) of textual sources, turning them into data that a computer can understand, and then running calculations and algorithms using that data. Typically, at its most basic level, that involves the counting of words.
 
@@ -32,13 +32,13 @@ unzip("AmCity.zip")
 
 ```{r}
 # Metadata that includes info about each issue.
-metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/AmCityMetadata.csv")
+metadata.am <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/AmCityMetadata.csv")
 
 meta <- as.data.frame(metadata)
 #meta$Filename <- paste("MB_", meta$Filename, sep="")
 file_paths <- system.file("TheAmericanCity/")
 ac_texts <- readtext(paste("TheAmericanCity/", "*.txt", sep=""))
-ac_whole <- full_join(meta, ac_texts, by = c("filename" = "doc_id")) %>% as_tibble() 
+ac_whole <- full_join(meta, ac_texts, by = c("Filename" = "doc_id")) %>% as_tibble() 
 
 tidy_ac <- ac_whole %>%
   unnest_tokens(word, text) %>% 
@@ -53,46 +53,75 @@ The above code borrows from what we did last week. It pulls in the texts from th
 For topic modeling, we need a Document Term Matrix, or a DTM. Topic Modeling has the documents running down one side and the terms across the top. `Tidytext` provides a function for converting to and from DTMs. First, we need to create a document that has the doc_id, the word and the count of the number of times that word occurs. We can do that using `count()`.
 
 ```{r}
-tidy_ac_words <- tidy_ac %>% count(filename, word)
+tidy_ac_words <- tidy_ac %>% count(Filename, word)
 ```
 
-Now we can use `cast_dtm()` to turn `tidy_mb_words` into a dtm. 
+Now we can use `cast_dtm()` to turn `tidy_ac_words` into a dtm. 
 
 ```{r}
 ac.dtm <- tidy_ac_words %>% 
-  count(filename, word) %>% 
-  cast_dtm(filename, word, n)
+  cast_dtm(Filename, word, n)
+class(ac.dtm)
 ```
 
-If you run `class(mb.dtm)` in your console you will notice that it now has a class of "DocumentTermMatrix". 
+If you run `class(ac.dtm)` in your console you will notice that it now has a class of "DocumentTermMatrix". 
 
 Now that we have a dtm, we can create a topic model. For this, we'll use the topic models package and the `LDA()` function. Take a minute and read the documentation for `LDA()`.
 
 There are two important options when running `LDA()`. The first is k which is the number of topics you want the model to generate. What number topics you generate is a decision that often takes some experimentation and depends on the size of your corpus. The American City corpus isn't that bigbut still has over 209k words. In this instance, because the corpus is so small we're going to start with a small number of topics. Going above 5 causes errors with this particular corpus. Later, when you work with a different corpus you should experiment with changing the number of topics from 10 to 20 to 30 to 50 to see how it changes your model. 
 
+How do you know if you've chosen a good k value?
+- Topics should be interpretable and distinct from each other. 
+- If topics seem too similar or generic, try fewer topics.
+- If topics seem to mix unrelated concepts, try more topics.
+- Theres no "right" answer. Its about whats useful for your research question.
+
 The second important option when running `LDA()` is the seed option. You don't worry too much about what setting the seed does, but put simply - it ensures the output of the model is predictable and reproducible. Using the seed ensures that if you come back to your code later or someone else tries to run it, the model will return exactly the same results. 
 
 Lets now train our model. This will take a few minutes: 
 ```{r}
-ac.lda <- LDA(ac.dtm, k = 5, control = list(seed = 12345))
+ac.lda10 <- LDA(ac.dtm, k = 10, method = "Gibbs", control = list(seed = 12345, iter = 2000, burnin = 1000))
+
+ac.lda12 <- LDA(ac.dtm, k=12, method = "Gibbs", control = list (seed = 12345, iter = 2000, burnin = 1000))
+
+ac.lda15 <- LDA(ac.dtm, k = 15, method = "Gibbs", control = list (seed = 12345))
+
+ac.lda13 <- LDA(ac.dtm, k = 13, method = "Gibbs", control = list (seed = 12345))
+
+ac.lda20 <- LDA(ac.dtm, k = 20, control = list(seed = 12345, iter = 2000, burnin = 1000))
+
+control = list(seed = 12345, iter = 2000, burnin = 1000)
+
+ac.lda25 <- LDA(ac.dtm, k = 25, control = list (seed = 12345))
+ac.lda30 <- LDA(ac.dtm, k = 30, control = list (seed = 12345))
+ac.lda <- LDA(ac.dtm, k = 35, control = list (seed = 12345))
+ac.lda40 <- LDA(ac.dtm, k = 40, control = list(seed = 12345))
+ac.lda3 <- LDA(ac.dtm, k = 3, control = list(seed = 12345))
+ac.lda7 <- LDA(ac.dtm, k=7, control = list(seed = 12345))
+ac.lda60 <- LDA(ac.dtm, k = 60, control = list(seed = 12345))
 ac.lda
 ```
 
 Now we have a LDA topic model that has 5 topics. There are two ways to look at this model: word-topic probabilities and document-topic probabilities. 
 
-Lets start with **word-topic probabilities.**
+LDA topic models have 2 key probability matricies: 
+
+* **Beta (word-topic probabilities)**: How much does each word contribute to each topic?
+* **Gamma (document-topic probabilities)**: How much of each document belongs to each topic?
+
+We will look at both. Lets start with the beta values or the **word-topic probabilities.**
 
 Every topic is made up of words that are most associated with that topic. Together these words typically form some sort of theme. To understand what this looks like the easiest thing to do is create a bar chart of the top terms in a topic. 
 
 ```{r}
-ac.topics <- tidy(ac.lda, matrix = "beta")
+ac.topics <- tidy(ac.lda13, matrix = "beta")
 head(ac.topics)
 ```
 What we have here is a list of topics and the weight of each term in that topic. Essential we have turned this into a one-topic-per-term-per-row format. So, for example, the term 10th has a weight of 5.135047e-05 in topic 1 but 7.269700e-05 in topic 2. Now that doesn't mean a lot to us at this moment and this format is impossible to grasp in its current size and iteration, but we can use tidyverse functions to pair this down and determine the 10 terms that are most common within each topic. 
 ```{r}
 ac.top.terms <- ac.topics %>%
   arrange(desc(beta)) %>% 
-  group_by(topic) %>% slice(1:5)
+  group_by(topic) %>% slice(1:7)
 
 ac.top.terms %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
@@ -101,19 +130,48 @@ ac.top.terms %>%
   facet_wrap(~ topic, scales = "free") +
   scale_y_reordered()
 ```
+
+Note the `scales = free` option in facet_wrap. This lets each facet (topic) have its own y-axis scale. Without this, topics with lower beta values would be hard to see because they'd all share the same scale. Try removing this option to see the difference. 
+
 (@) Can you adjust the code above to show the top 10 words from just one topic?
 ```{r}
-
+ac.top.terms <- ac.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:15)
+ac.top.terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
 ```
 
 Another useful way to look at the words in each topic is by visualizing them as a wordcloud.
 ```{r warning=FALSE}
+install.packages("wordcloud")
 library(wordcloud)
-topic1 <- ac.topics %>% filter(topic == 2)
+topic1 <- ac.topics %>% filter(topic == 3)
 wordcloud(topic1$term, topic1$beta, max.words = 100, random.order = FALSE,
     rot.per = 0.3, colors = brewer.pal(6, "Dark2"))
 ```
 
+(@) Look at the topic words in each topic. Can you give each topic a descriptive label based on what it seems to be about? For example, if a topic has words like "street", "traffic", "paving", and "sidewalk," you might call it "Urban Infrastructure."
+
+Topic 1: OCR errors
+Topic 2: Mixed
+Topic 3: Mosquitoes and pests
+Topic 4: Building Materials
+Topic 5: Property
+Topic 6: Mixed
+Topic 7: Organizations and Communities
+Topic 8: Employment
+Topic 9: Mixed
+Topic 10: Building Materials
+Topic 11: Surface materials
+Topic 12: Urban Infrastructure
+Topic 13: Water 
+
+Not all topics will be immediately interpretable and that is normal. Some might be ocr errors or gibberish rather than meaningful themes. 
 
 Now we can see what words are most common in each topic. But the document-topic probabilities are also useful for understanding what topics are prevalent in what documents. Just as each topic is made up of a mixture of words, the LDA algorithm also assumes that each topic is made up of a mixture of topics. 
 
@@ -132,56 +190,228 @@ This gamma value is really useful and we can use it to see which topics appear i
 
 We can do that using the ac.documents dataframe that we just created but it needs to be joined with the metadata. Again, this is why it is important to have a filename within the metadata spreadsheet. To join these two together we can do a full_join because we want to keep all of the columns.
 ```{r}
-topics.by.year <- full_join(ac.documents, metadata, by = join_by(document == filename))
+topics.by.year <- full_join(ac.documents, metadata, by = join_by(document == Filename))
 ```
 
 Now what we have is a document that includes the proportion of each topic in each document. Because this is a dataset about a periodical, we have values in our metadata that will make it easy to plot the distrubtion of a topic over time -- in this case for each edition of the journal.
 ```{r}
-topics.by.year$issue_date <- paste(topics.by.year$month, " ", topics.by.year$year, sep = "")
+topics.by.year$issue_date <- paste(topics.by.year$Month, " ", topics.by.year$Year, sep = "")
 ggplot(data=topics.by.year, aes(x=issue_date, y=gamma)) + geom_bar(stat="identity") + facet_wrap(~ topic, scales = "free") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
 Using this we can tell that topic 5, which from earlier had the words improve, grow, ties, contracts, and gasoline as the top five words, is most prominent in January 1915. 
 
-(@) Use the rest of this worksheet to experiment with topic modeling. I've added the code to download a much larger dataset - the issues of Mind and Body. This corpus has 413 documents ranging from the 1890s to 1936. You'll want to start with at least 25 topics. 
+## When Topic Modeling Can be Misleading
+
+Topic modeling works best with:
+- Large corpora
+- Documents that have multiple topics
+
+It will struggle with very small corpora, very short documents (like tweets or social media posts, headlines etc), documents about a single focused topic. 
+
+## Puting it all together: Topic Modeling a Historical Corpus
+
+For the final portion of this worksheet, you'll apply topic modeling to a historical corpus from the [8510-TextAnalysisData repository](https://github.com/regan008/8510-TextAnalysisData). Choose a corpus that interests you - options include Mind and Body (physical education), Woman's Journal (suffrage), and others.
+
+### Step 1: Choose Your Corpus and Research Question
+
+Before you start coding, articulate what you want to explore:
+
+(@) What corpus did you choose and why?
+
+> I chose the Mind and Body corpus because it is a large data set and I think is a good candidate for topic modeling. I am  interested in seeing how the topic model depicts change over time, considering this corpus is over multiple years. 
+
+(@) What historical question(s) could topic modeling help you explore with this corpus? (Examples: How did discourse change over time? What topics dominated during specific periods? Can we detect shifts related to major historical events?)
+
+> How did discourse around physical education change over the course of the journal? Are there any specific events that visibly change the discourse? 
+
+### Step 2: Build Your Topic Model
+
 ```{r}
-#| eval: false
-download.file("https://github.com/regan008/8510-TextAnalysisData/blob/main/MindAndBody.zip?raw=true", "MB.zip")
-unzip("MB.zip")
+# Download and load your chosen corpus
+# Join with metadata
+# Tokenize and clean
+download.file("https://github.com/regan008/8510-TextAnalysisData/raw/refs/heads/main/MindAndBody.zip", "MindAndBody.zip")
+unzip("MindAndBody.zip")
+
+metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/mb-metadata.csv")
+
+mb <- readtext(paste(getwd(), "/txt/*.txt", sep=""))
+
+metadata <- metadata %>% arrange(desc(Filename))
+mb <- mb %>% arrange(desc(doc_id))
+mb.whole <- left_join(metadata, mb, by= c("Filename" = "doc_id"))
+
+my_stops <- tibble(word = c("physical", "education", "exercise", "exercises"), lexicon = "custom")
+
+# Combine with the built-in dataset
+updated_stop_words <- bind_rows(stop_words, my_stops)
+
+mb.whole <- 
+  metadata %>%  
+  bind_cols(mb) %>% 
+  as_tibble() 
+
+tidy_mb <- mb.whole %>%
+  unnest_tokens(word, text) %>% 
+  filter(str_detect(word, "[a-z']$")) %>% 
+  anti_join(updated_stop_words)
+
 ```
 
 ```{r}
-# Metadata that includes info about each issue.
-mb.metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/mb-metadata.csv")
+# Create your document-term matrix
+tidy_mb_words <- tidy_mb %>% count(Filename, word)
+
+mb.dtm <- tidy_mb_words %>% 
+  cast_dtm(Filename, word, n)
+class(mb.dtm)
 ```
 
-(@) What happens if you create a custom stopword list? How does this change the model?
 ```{r}
+# Experiment with different k values (number of topics)
+# Start with k = 10, then try 15, 20, 25, etc. Sometimes the "right" number of topics will be an odd number like 12.
+# What number gives you the most interpretable topics?
+mb.lda20 <- LDA(mb.dtm, k = 20, method = "Gibbs", control = list(seed = 12345))
+
+mb.lda15 <- LDA(mb.dtm, k = 15, method = "Gibbs", control = list (seed = 12345))
+ 
+mb.lda10 <- LDA(mb.dtm, k = 10, control = list (seed = 12345))
+
+mb.lda5 <- LDA(mb.dtm, k = 5, control = list (seed = 12345))
+
+mb.lda25 <- LDA(mb.dtm, k=25, method = "Gibbs", control = list (seed = 12345))
+
+mb.lda35 <- LDA(mb.dtm, k=35, method = "Gibbs", control = list(seed = 12345))
+
+mb.lda45 <- LDA(mb.dtm, k=45, method = "Gibbs", control = list(seed = 12345))
+
+mb.lda40 <- LDA(mb.dtm, k=40, method = "Gibbs", control = list(seed=12345))
+
+mb.topics <- tidy(mb.lda40, matrix = "beta")
+head(mb.topics)
+
+mb.top.terms <- mb.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:15)
+
+mb.top.terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
 
 ```
 
-(@) Can you create a topic model for just the documents in the 1920s? How does that change the model? 
+(@) How many topics did you settle on? Why did you choose this number?
+
+> I chose 40 topics. After playing around with the number, I felt like I was pretty close when I tried 35. When I tried 45, the topics got a bit less comprehensible. With 40, I can make sense of almost all of the topics. 
+
+### Step 3: Interpret Your Topics
+
 ```{r}
-
+# Generate top terms for each topic
+mb.top.terms <- mb.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:15)
 
 ```
 
-(@) Now, lets return to the Buffalo Bill data from last week. You should be able to use topic modeling to address two of the research questions provided:
+```{r}
+# Visualize top terms
+mb.top.terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
 
-* Can we detect some change over time in promotion language and reception language (marketing and reviewing)? Were there types of characters, scenarios, action promised in promotional material and/or noted in reviews earlier vs later?
-* What can be gleaned from the items tagged as extraneous as far as topics? These are news items that are somehow related to BBWW. Crime, finances, celebrity, etc.
+```
 
-To analyze this you should first generate a topic model for the buffalo bill data. Play with the number of topics until you find a number that feels about right for the dataset. I am guessing it'll be in the 8-15 range but you'll need to play with it to see what number gives you the best fit. 
+(@) Label each of your topics based on the top words. What does each topic seem to be about?
 
-To address the first research question, you'll need to plot topics over time. I would create three models, one for all of the data, one for promotion, and one for reception. What do we learn by doing this?
+> number; topic name; top words 
+1; speech; stuttering, tested, stutterer, lisping, diabetic
+2; mixed; integration, intellect, sexual, homeless, freudian
+3; school; school, time, body, digitized, training, children, life 
+4; mixed; gymnastics, gymnastic, milwaukee, st, chicago, culture
+5; mixed; columbus, parade, kampf, inhaling 
+6; mixed; spiess, dust, muths, nutritional, status
+7; european words; verein, rf, jochim, swiss, concentrations
+8; movement; sec, grace, graceful, movements, fw, coal, beauty 
+9; spine; meas, massage, scoliosis, spinal, core, column, bodies
+10; positions/exercises; forw, front, pos, backw, rest, raise
+11; mixed; informal, votes, vote, gurdjeff, tt, disliked
+12; german; gutsmuths, baby, pneumonia, schnepfenthal, salzamann
+13; camping; camp, fire, trees, min, asst, graded, bulb, clouds, outings, camps
+14; rhythm/dance; measures, waltz, scarf, trot, couple,
+15; fencing; tierce, quarte, guard, parry, lunge, counter, lower
+16; measurements; sec, min, ft, yds, yd
+17; sanitation systems; sewage, joint, tank, forest, bacteria, septic, tanks, solids
+18; european words; fiesh, finland, meters, sweden, abstainers, eaters, endurance... rugby, england, meter
+19; smoking; nicotine, intuition, homewood, cigarette, smoke, tobacco, cigarettes, tar 
+20; menstruation; female, menstrual, uterus, thyroid, conditioned, dysmenorrhea, inhibition
+21; Ventilation/Air conditions; air, temperature, ventilation, heating, heat, humidity, ozone
+22; Lighting; light, eye, lighting, glare 
+23; Swimming; stroke, water, swimming, breast, swim, crawl, pool, strokes, swimmer, dive, kick 
+24; Exercises; step, camp, pyramids, sunday, drills, gymnastics 
+25; Team Games; ball, game, player, players, line, play, goal 
+27; german words; jahn, berlin, follen, jahn's, turners, turnplatz 
+28; names/people; cts, mother, santa, ct, king, stage, mary, sam, claus
+29; Military; military, war, training, pool, drill, army, water, soldiers, officers, tactics 
+30; Bodily functions; heart, blood, pressure, oxygen, pulse, cardiac, circulation, respiration, rate, flow, veins
+31; Directions/Exercises; forward, stand, swing, jump, hang, backward, support, vault 
+32; Directions/exercises; left, arms, forward, positions, arm, repeat 
+33; Speech; stammering, speech, yacht, stammerer, calcutta
+34; Abbreviations/ocr error; meas, bd, str, epinephrin, hd, kns
+35; Mixed; meas, mechanics, 3rd, 2nd, rhythm, jan 
+36; Diet; food, diet, tuberculosis, water, milk, foods, teeth, vitamin, fat 
+37; locations; st, ave, chicago, mich, cleveland, detroit
+38; School programs; health, school, activities, program, children
+39; School activity; school, schools, athletic, games, city, playground
+40; Climbing; rope, climb, climbing, ropes, downward, top
 
-For the second, a general topic model of the extraneous articles will be needed. 
+(@) Are there any topics that don't make sense or seem to mix unrelated concepts? This is normal - not every topic will be interpretable.
 
-Add code blocks below as necessary.
+> Yes, see above topics labeled mixed
 
-(@) Finally, when you are all done. Write up your findings. What research question did you focus on and what did you learn? 
+### Step 4: Analyze Topics Over Time
+
+```{r}
+# Join document-topic probabilities with metadata
+# Plot topics over time
+mb.documents <- tidy(mb.lda40, matrix = "gamma")
+head(mb.documents)
+
+mb.topics.by.year <- full_join(mb.documents, metadata, by = join_by(document == Filename))
+
+mb.topics.by.year$issue_date <- paste(mb.topics.by.year$Month, " ", mb.topics.by.year$Year, sep = "")
+
+mb.1930s <- mb.topics.by.year %>% filter(Year >= 1930 & Year <= 1939)
+
+mb.1910s <- mb.topics.by.year %>% filter(Year >= 1910 & Year <= 1919) 
+
+mb.1930 <- mb.topics.by.year %>% filter(Year == 1930)
 
 
+mens.1920s <- mb.topics.by.year %>% filter (Year >= 1920 & Year <= 1929) %>% filter(topic == 20)
 
-**This was the final worksheet for this class. You did it - you learned to code in R! Congrats!**
+mens.1910s <- mb.topics.by.year %>% filter (Year >= 1910 & Year <= 1919) %>% filter(topic == 20)
 
+ggplot(data=mens.1910s, aes(x=issue_date, y=gamma)) + geom_bar(stat="identity") + facet_wrap(~ topic, scales = "free") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+(@) What patterns do you see? Do certain topics appear more frequently in specific time periods? How does this align with what you know about the historical context?
+
+> Because this is such a large dataset and I have so many topics, I filtered down to just plot the 1930s; unfortunately, it is still impossible to read the x-axis labels. However, I know that the early 1930s are on the left and the late 1930s are on the right, so I can make educated guesses with this plot. Interestingly, the smoking topic only peaks during one year around the early-mid 1930s. The school related topics are commonly high throughout the decade. Swimming is heavily discussed in 1939 and not much before that. I am particularly interested in the menstruation topic, which spikes in the early-mid 30s but is pretty consistent throughout the rest of the decade. 
+
+### Step 5: Historical Analysis
+
+(@) Write 3-4 paragraphs analyzing your findings. Address your original research question(s) and connect your computational findings to historical context. What can topic modeling reveal about this corpus that close reading alone might miss? What are the limitations of this approach? 
+
+> Because I am specifically interested in women's history, I decided to filter down to just the 1920s and just topic 20, which is mainly about menstruation. Most of the issues in this decade have a very low gamma score for this topic. However, October 1923, June 1924, November 1924, and February 1925 show large spikes, with scores ranging between 0.025 and nearly 0.1. Sept-Oct of 1923 had the highest score, so I decided to conduct close reading of the source. 
+>Initially, I anticipated that the source would caution women and girls against exercising while on their period. I have some background knowledge that physicians would usually advise minimal exertion during menstruation during the late 1800s and early 1900s. However, I found that the article addressing menstruation actually disagreed with this medical advice and advocated for women and girls to go about their normal physical activities during menstruation. It seems that the author, Dr. Alice Sanderson Clow, was instrumental in changing attitudes regarding this topic. 
+>When I attempted to graph the gamma values for topic 20 in the 1910s, they appeared to be much lower than in the 20s. One outlier, from February 1914, has a value of nearly 0.05, but the rest are extremely low. The highest one primarily discusses a new type of undergarment for school girls and not menstruation. This may be evidence that menstruation was still too taboo of a topic to discuss in the 1910s. 
+
+---
