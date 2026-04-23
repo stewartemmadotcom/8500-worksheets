@@ -11,11 +11,16 @@ _This is the seventh in a series of worksheets for History 8500 at Clemson Unive
 There are many different mapping packages for R. That means there is no single way to create a map in R. Different packages have different strengths and weaknesses and your use of them will depend on your goals and the historical questions you would like to ask. If your project is highly map centric - it may be better suited to ArcGIS which we will not cover in this class. 
 
 ```{r message=FALSE, warning=FALSE}
+install.packages("DigitalMethodsIData")
 library(ggplot2) 
 library(tidyverse)
 library(DigitalMethodsData)
+install.packages("ggmap")
 library(ggmap)
 library(tidygeocoder)
+
+install.packages("devtools")
+library(devtools)
 ```
 
 ### Geocoding
@@ -25,18 +30,30 @@ However, for the purposes of this class we're going to use Open Street Map's geo
 
 To use the geocoding service, lets first load some data. We'll use the recreation data that we used last week. 
 ```{r}
-rec.data <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/Recreation-Expenditures.csv")
+rec.data <- read_csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/Recreation-Expenditures.csv")
 head(rec.data)
 ```
 Notice in this dataset we have the city state and year but no geographical coordinates if we wanted to map this data. Even if we don't have an exact street address, we can still geocode this data to get coordinates. The function to do that is `geocode()` and we can pass it a city and street. Note the method option, which designates which geocoding service we want to use. 
 ```{r}
 rec.data.coordinates <- rec.data %>% geocode(city = city, state = state, method='osm', lat = latitude, long = longitude)
+
 head(rec.data.coordinates)
+str(rec.data)
+
+
+register_google(key = "AIzaSyBmoZme9GAPyWKgIB5XbzGZa_fEZVaK91o")
 ```
 Now we have latitude and longitude coordinates for our data. 
 
 (@) Use this approach to geocode the `UndergroundRR` data. 
 ```{r}
+data("UndergroundRR")
+head(undergroundRR)
+as_tibble(undergroundRR)
+
+full.RR <- undergroundRR %>% mutate(location = paste(City, State, sep = ", "))
+
+RR.data.coords <- full.RR %>% geocode(location, method = "osm", lat = latitude, long = longitude)
 
 ```
 
@@ -44,6 +61,13 @@ Now we have latitude and longitude coordinates for our data.
 (@) Geocode the Boston Women Voters dataset. Note that the data does include street addresses but because they are broken into parts - street address number, street, etc - you'll need to combine them into a full address to pass to the geocoding function. 
 ```{r}
 data("BostonWomenVoters")
+str(BostonWomenVoters)
+bwv <- BostonWomenVoters %>% mutate(address = paste(Street.Number.on.April.1, Street.of.Residence.on.April.1, sep = " "))
+str(bwv)
+bwv.full <- bwv %>% mutate(location = paste(address, "Boston, MA", sep = " "))
+head(bwv.full)
+bwv.slice <- bwv.full[1:400,]
+bwv.datacoords <- bwv.slice %>% geocode(location, method = "osm", lat = latitude, long = longitude)
 ```
 
 ### Maps with `ggplot()`
@@ -59,17 +83,18 @@ First we need to get a basemap. For this example we'll use the `map_data()` func
 Lets load the base map data for the US. 
 ```{r}
 usa <- map_data("state")
+str(usa)
 ```
 
 (@) `map_data()` generates a data frame. Take a look at this data frame, what types of data are included? 
 
-> 
+> The data frame is composed of over 15,000 rows of latitude and longitude points, along with their corresponding states. Essentially, it is just a bunch of data points that create the state boundary lines. 
 
 
 We can now pass this data to ggplot to create a simple basemap. When we wanted to create a bar plot using `ggplot()` we called `geom_bar`. When we wanted to create a line chart we used `geom_point()` and `geom_line()`. The sample principle applies here and `ggplot()` provides a geom for maps.
 ```{r}
 ggplot() + 
-  geom_map( data = usa, map = usa, aes(long, lat, map_id=region))
+  geom_map( data = usa, map = usa, aes(long, lat, map_id=region)) + coord_fixed(1.3)
 ```
 
 Now we have a basemap! But what if we want to layer data onto it. Lets add all of the locations in `gayguides` from 1965. First we need to set up our data: 
@@ -82,22 +107,44 @@ And then we can use the same mapping code from above but this time we're going t
 ```{r}
 ggplot() + 
   geom_map(data = usa, map = usa, aes(long, lat, map_id=region), fill = "lightgray", color = "black") +
-  geom_point(data = gayguides, mapping = aes(x = lon, y = lat), color = "red")
+  geom_point(data = gayguides, mapping = aes(x = lon, y = lat), color = "red") +
+  coord_fixed(1.3)
 ```
 
 (@) This map looks slightly funny, but that is because the data includes entries outside of the contiguous United States. Try filtering out those entries and mapping this again. Can you change the color or size of the points? Can you add a title?
 ```{r}
+gayguides <- gayguides %>% 
+  filter(state != "HI" & state != "AK")
+
+ggplot() + 
+  geom_map(data = usa, map = usa, aes(long, lat, map_id=region), fill = "lightgray", color = "black") +
+  geom_point(data = gayguides, mapping = aes(x = lon, y = lat), color = "purple", size = 1) +
+  coord_fixed(1.3) +
+  labs(title="Gay Guides Locations", caption="Source: Mapping the Gay Guides")
 
 ```
 
 (@) Can you map just locations in South Carolina (on a basemap of SC)? 
 ```{r}
-
+data(gayguides)
+str(usa)
+sc <- usa %>% filter(region == "south carolina")
+sc.gg <- gayguides %>% filter(state == "SC")
+ggplot() + 
+  geom_map(data = sc, map = sc, aes(long, lat, map_id=region), fill = "lightgray", color = "black") +
+  geom_point(data = sc.gg, mapping = aes(x = lon, y = lat), color = "purple", size = 2) +
+  coord_fixed(1.3) +
+  labs(title="South Carolina Locations", caption="Source: Mapping the Gay Guides")
 ```
 
 (@) Create a map that uses your geocoded data from the Boston Women Voters dataset. 
 ```{r}
-
+ma <- usa %>% filter(region == "massachusetts")
+ggplot() + 
+  geom_map(data = ma, map = ma, aes(long, lat, map_id=region), fill = "lightgray", color = "black") +
+  geom_point(data = bwv.datacoords, mapping = aes(x = longitude, y = latitude), color = "purple", size = 2) +
+  coord_fixed(1.3) +
+  labs(title="Some Women Voters in Boston, 1920", caption="Source: Boston Women Voters")
 ```
 
 Lets return to the recreational data for a minute.
@@ -112,21 +159,27 @@ We can do that by making a small adjustment to the map we made previously. First
 ```{r}
 ggplot() + 
   geom_map(data = usa, map = usa, aes(long, lat, map_id=region), fill = "lightgray", color = "black") +
-  geom_point(data = rec.data.coordinates, mapping = aes(x=longitude, y=latitude))
+  geom_point(data = rec.data.coordinates, mapping = aes(x=longitude, y=latitude)) +
+   coord_fixed(1.3)
 ```
 
 ```{r}
 ggplot() + 
   geom_map( data = usa, map = usa, aes(long, lat, map_id=region), fill="white", color="gray") +
-  geom_point(data = rec.data.coordinates, mapping = aes(x=longitude, y=latitude, size=total_expenditures))
+  geom_point(data = rec.data.coordinates, mapping = aes(x=longitude, y=latitude, size=total_expenditures)) +
+   coord_fixed(1.3)
 ```
 
 ---
 
 ```{r}
-library(readr) #you may have to install it using `install.packages()`. 
+library(readr) 
+#you may have to install it using `install.packages()`. 
+install.packages("sf")
 library(sf)
-library(ipumsr) #you may need to install this. If you are on a mac, it may give you warnings. Try loading it to verify installation worked. 
+install.packages("ipumsr")
+library(ipumsr) 
+#you may need to install this. If you are on a mac, it may give you warnings. Try loading it to verify installation worked. 
 library(tidyverse)
 
 #NHGIS data is stored in zip files. R has functions for dealing with these but we still need to download the file to our server. Here we're going to write a function that will create a new directory, download the data, and rename it. 
