@@ -176,6 +176,9 @@ ggplot() +
 library(readr) 
 #you may have to install it using `install.packages()`. 
 install.packages("sf")
+Sys.setenv(UDUNITS2_INCDIR = "/usr/local/include")
+Sys.setenv(UDUNITS2_LIBDIR = "/usr/local/lib")
+install.packages("sf")
 library(sf)
 install.packages("ipumsr")
 library(ipumsr) 
@@ -213,7 +216,7 @@ ggplot(data = nhgis, aes(fill = AZF001)) +
 
 ```
 (@) In the code above, why filter out Hawaii and Alaska? Try commenting out that line and rerunning the code. What happens? Why might we want to do this? Why might we not want to do this? How does it shape the interpretation?
->
+> The reason we filter out Hawaii and Alaska here is because the map becomes distorted and difficult to read if we don't. Leaving those out helps with this; however, it obviously leaves out part of the country as well, so we will be missing a piece of the analysis. Ultimately, this map is helpful for analyzing the contiguous US, but may not be helpful if we wanted to look at the entire country. 
 
 This is a great start. But using AZF001 (Native born males) as the fill does not create a useful visualization. It doesn't give us a sense of the proportion of that data. There are multiple problems with the map as it is, but one is that the color scale makes this incredibly hard to read. We can fix that by using a scale to break the values of AZF001 into bins and assign each a color. R has a function for this. It comes from the scales pacakge which you may need to install.
 
@@ -227,23 +230,24 @@ This is now much more readable but the numbers represented are simply the raw po
 
 (@) First, create a variable called total_male_pop, with the total foreign and native born male population by summing the variables AZF001 and AZF003. 
 ```{r}
-
+total_male_pop <- nhgis %>% mutate(total = AZF001 + AZF003)
 ```
 
 (@) Now, use the total_male_pop variable and create a variable for the the percentage of foreign born males.
 ```{r}
-
+male_pop <- total_male_pop %>% mutate(percent_foreign = AZF003 / total)
 ```
 
 (@) Now map your result. You'll want to replicate the code from the example above, but this time add another layer to the plot - a scale. Here we'll use this scale `scale_fill_continuous("", labels = scales::percent)`
 
 Before you write that code, look up the documentation for the above code (and look at the examples). What does it do? 
 
->
+> The code above takes the nhgis dataframe we created and fills in the map with different colors based on the variable we provided (AZF001).
 
 Now create the map: 
 ```{r}
-
+ggplot(data = male_pop, aes(fill = percent_foreign)) +
+  geom_sf() + scale_fill_distiller(name="Percentage of Foreign Born Males", palette = "Spectral" , breaks = pretty_breaks(n = 10))
 ```
 
 ### Leaflet
@@ -252,6 +256,7 @@ In recent years Leaflet has become the most popular open source Javascript libra
 
 Like `ggplot()` it works by layering information on top of a basemap. You begin by loading the library and invoking leaflet. 
 ```{r}
+install.packages("leaflet")
 library(leaflet)
 my.map <- leaflet()
 my.map
@@ -273,12 +278,17 @@ leaflet(data=rec.data.coordinates) %>% addTiles() %>% addMarkers(~longitude, ~la
 
 (@) Use leaflet to map a dataset of your choice: 
 ```{r}
+library(DigitalMethodsData)
+data(gayguides)
+gayguides <- gayguides %>% filter(Year == 1980)
+leaflet(data=gayguides) %>% addTiles() %>% addMarkers(~lon, ~lat, popup=paste("This location falls into the ", gayguides$type, " category.", sep=""))
 
+leaflet(data=gayguides) %>% addTiles() %>% addMarkers(~lon, ~lat, popup=paste("This location falls into the ", gayguides$type, "category.", sep=""))
 ```
 
 (@) Explain what choices you made in building this map? Why might you use leaflet over ggplot? When would ggplot be more desirable? 
 
->
+> I decided to plot the locations from 1980 in the gayguides dataset. I chose to use the type category for the popups, because I think this provides interesting information about the resources available in different areas of the country. Using leaflet is preferable for an interactive map in which I want to see specific information about specific locations. Using ggplot is preferable if I want a broader view of the country that is a bit easier to manage and view all at once. 
 
 
 ### Exercises
